@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Статистика повітряних тривог</title>
+  <meta name="description" content="Статистика повітряних тривог по областях, районах і громадах України на основі даних alerts.in.ua" />
+  <link rel="stylesheet" href="css/theme.css" />
+  <script>
+    // застосувати збережену тему ДО першого малювання, щоб уникнути "спалаху" неправильної теми
+    (function () {
+      var t = localStorage.getItem('theme-override');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app-header">
+      <div>
+        <h1>Статистика повітряних тривог</h1>
+        <p class="header-sub" id="header-sub">Завантаження…</p>
+      </div>
+      <div class="controls">
+        <select id="location-select" aria-label="Оберіть область, район або громаду">
+          <option>Завантаження локацій…</option>
+        </select>
+        <button id="theme-toggle" title="Перемкнути тему" aria-label="Перемкнути тему">🖥️</button>
+      </div>
+    </header>
+
+    <main id="module-content" class="module-grid">
+      <div class="empty-state"><h2>Завантаження…</h2></div>
+    </main>
+
+    <footer class="app-footer">
+      Дані: <a href="https://alerts.in.ua" target="_blank" rel="noopener">alerts.in.ua</a> ·
+      оновлюється автоматично щогодини
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+alerts.db
+chart_data.json
+analysis_output.txt
+scratchpad/
+.venv/
+venv/
+.claude/settings.local.json
