@@ -22,9 +22,21 @@
         <p class="header-sub" id="header-sub">Завантаження…</p>
       </div>
       <div class="controls">
-        <select id="location-select" aria-label="Оберіть область, район або громаду">
-          <option>Завантаження локацій…</option>
-        </select>
+        <div class="loc-search-wrap">
+          <input
+            type="text"
+            id="location-search"
+            class="loc-search-input"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="location-listbox"
+            aria-autocomplete="list"
+            autocomplete="off"
+            placeholder="Завантаження локацій…"
+            disabled
+          />
+          <ul id="location-listbox" class="loc-listbox" role="listbox" hidden></ul>
+        </div>
         <button id="theme-toggle" title="Перемкнути тему" aria-label="Перемкнути тему">🖥️</button>
       </div>
     </header>

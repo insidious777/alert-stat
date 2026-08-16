@@ -76,7 +76,9 @@ header.app-header h1 { font-size: 20px; font-weight: 650; margin: 0; }
 
 .controls { display: flex; gap: 10px; align-items: center; min-width: 0; flex: 1 1 auto; }
 
-select#location-select {
+.loc-search-wrap { position: relative; flex: 1 1 260px; min-width: 0; max-width: 100%; }
+
+.loc-search-input {
   background: var(--surface-1);
   color: var(--text-primary);
   border: 1px solid var(--border);
@@ -84,21 +86,51 @@ select#location-select {
   padding: 8px 12px;
   font-size: 13.5px;
   font-family: inherit;
-  /* select росте до ширини поточного тексту опції за замовчуванням -
-     фіксуємо через flex-basis/min-width:0, щоб він стискався замість
-     виштовхування сторінки вшир на вузьких екранах */
-  flex: 1 1 260px;
+  width: 100%;
   min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  box-sizing: border-box;
 }
+.loc-search-input::placeholder { color: var(--text-muted); }
+.loc-search-input:disabled { opacity: 0.6; }
+
+.loc-listbox {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  z-index: 30;
+}
+.loc-listbox li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.loc-listbox li .loc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.loc-listbox li .loc-meta { flex-shrink: 0; display: flex; align-items: baseline; gap: 8px; font-size: 11px; color: var(--text-muted); }
+.loc-listbox li .loc-context { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.loc-listbox li .loc-count { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.loc-listbox li.active { background: var(--series-1-wash); }
+.loc-listbox li.disabled { opacity: 0.4; cursor: default; }
+.loc-listbox li.disabled .loc-name { text-decoration: none; }
+.loc-listbox .loc-empty { padding: 14px 10px; color: var(--text-muted); font-size: 13px; cursor: default; }
 
 @media (max-width: 560px) {
   header.app-header { flex-direction: column; align-items: stretch; }
   .controls { width: 100%; }
-  select#location-select { flex-basis: 0; }
 }
 
 button#theme-toggle {

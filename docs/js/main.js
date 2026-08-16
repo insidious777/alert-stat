@@ -1,8 +1,9 @@
 import { loadJson } from './lib/data-loader.js';
-import { populateLocationSelect, getSelectionFromHash, setHash } from './lib/location-select.js';
+import { initLocationSearch, getSelectionFromHash, setHash } from './lib/location-select.js';
 import modules from './module-registry.js';
 
-const selectEl = document.getElementById('location-select');
+const searchInputEl = document.getElementById('location-search');
+const listboxEl = document.getElementById('location-listbox');
 const contentEl = document.getElementById('module-content');
 const subtitleEl = document.getElementById('header-sub');
 const themeToggleEl = document.getElementById('theme-toggle');
@@ -89,23 +90,27 @@ async function bootstrap() {
   ]);
   locationsData._byUid = new Map(locationsData.locations.map((l) => [l.uid, l]));
 
-  populateLocationSelect(selectEl, locationsData, manifestData);
+  const locationSearch = initLocationSearch({
+    inputEl: searchInputEl,
+    listboxEl,
+    locationsData,
+    manifestData,
+    onSelect: (key) => {
+      setHash(key);
+      loadLocation(key);
+    },
+  });
+
+  searchInputEl.disabled = false;
+  searchInputEl.placeholder = 'Пошук області, району, громади…';
 
   const defaultEntry = manifestData.locations.slice().sort((a, b) => b.alert_count - a.alert_count)[0];
   const defaultVal = defaultEntry ? keyFor(defaultEntry.type, defaultEntry.uid) : '';
   const initial = getSelectionFromHash(defaultVal);
 
-  if ([...selectEl.options].some((o) => o.value === initial)) {
-    selectEl.value = initial;
-  }
-
-  selectEl.addEventListener('change', () => {
-    setHash(selectEl.value);
-    loadLocation(selectEl.value);
-  });
-
-  if (selectEl.value) {
-    loadLocation(selectEl.value);
+  if (locationSearch.hasLocation(initial)) {
+    locationSearch.setValue(initial, { silent: true });
+    loadLocation(initial);
   } else {
     renderEmptyState('Дані ще не зібрано.');
   }

@@ -4,7 +4,7 @@
     {
       "name": "alert-stat-site",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8420", "--directory", "docs"],
+      "runtimeArgs": ["scripts/devserver.py", "8420"],
       "port": 8420
     }
   ]
