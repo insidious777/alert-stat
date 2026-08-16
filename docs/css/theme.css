@@ -74,7 +74,7 @@ header.app-header {
 header.app-header h1 { font-size: 20px; font-weight: 650; margin: 0; }
 .header-sub { font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 0; }
 
-.controls { display: flex; gap: 10px; align-items: center; }
+.controls { display: flex; gap: 10px; align-items: center; min-width: 0; flex: 1 1 auto; }
 
 select#location-select {
   background: var(--surface-1);
@@ -83,8 +83,22 @@ select#location-select {
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13.5px;
-  min-width: 260px;
   font-family: inherit;
+  /* select росте до ширини поточного тексту опції за замовчуванням -
+     фіксуємо через flex-basis/min-width:0, щоб він стискався замість
+     виштовхування сторінки вшир на вузьких екранах */
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  header.app-header { flex-direction: column; align-items: stretch; }
+  .controls { width: 100%; }
+  select#location-select { flex-basis: 0; }
 }
 
 button#theme-toggle {
