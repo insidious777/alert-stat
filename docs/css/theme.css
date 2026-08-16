@@ -131,14 +131,18 @@ button#theme-toggle:hover { opacity: 0.85; }
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px 20px 14px;
+  /* без цього grid-елемент не стискається нижче ширини вмісту (min-width:auto
+     за замовчуванням) - вкладена сітка тайлів роздуває всю сторінку вшир */
+  min-width: 0;
 }
 .card h2 { font-size: 15px; font-weight: 650; margin: 0 0 2px; }
 .card .desc { font-size: 12.5px; color: var(--text-secondary); margin: 0 0 14px; }
 .card .foot-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
 .card.error { color: var(--critical); font-size: 13px; }
 
-.chart-box { position: relative; height: 240px; }
+.chart-box { position: relative; height: 240px; width: 100%; min-width: 0; }
 .chart-box.short { height: 160px; }
+.chart-box canvas { max-width: 100%; }
 
 /* ---- info card (no chart) ---- */
 .info-card-row { display: flex; flex-wrap: wrap; gap: 20px; }
