@@ -180,14 +180,16 @@ def rebuild_db_from_cache() -> None:
     print("Готово.")
 
 
-def fetch_range(start: int, end: int, force: bool, label: str) -> None:
+def fetch_range(start: int, end: int, force: bool, label: str, descending: bool = False) -> None:
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
 
-    print(f"{label}: дні {start}..{end}")
-    for idx in range(start, end + 1):
+    days = range(end, start - 1, -1) if descending else range(start, end + 1)
+    order_note = " (від новіших до старіших)" if descending else ""
+    print(f"{label}: дні {start}..{end}{order_note}")
+    for idx in days:
         try:
             data = fetch_day(idx, session, force=force)
         except requests.RequestException as e:
@@ -214,15 +216,17 @@ def incremental() -> None:
     cached = cached_day_indices()
     last_cached = max(cached) if cached else yesterday_index - 1
 
-    # добудовуємо пропущені дні (напр. якщо CI не запускався якийсь час)
+    # "сьогодні" й "вчора" оновлюємо першими й завжди примусово — вони
+    # найважливіші (сьогодні ще триває, вчора інколи дозаписується заднім
+    # числом) і мають з'явитись на сайті щонайшвидше
+    fetch_range(yesterday_index, today_index, force=True, label="Примусове оновлення сьогодні+вчора")
+
+    # добудовуємо пропущені дні (напр. якщо CI не запускався якийсь час) —
+    # від новіших до старіших, щоб свіжіші дані наздогнались раніше за архів
     gap_start = last_cached + 1
     gap_end = yesterday_index - 1
     if gap_start <= gap_end:
-        fetch_range(gap_start, gap_end, force=False, label="Добудова пропущених днів")
-
-    # "сьогодні" й "вчора" завжди перезаписуємо примусово — вони можуть
-    # змінюватись (сьогодні ще триває, вчора інколи дозаписується заднім числом)
-    fetch_range(yesterday_index, today_index, force=True, label="Примусове оновлення сьогодні+вчора")
+        fetch_range(gap_start, gap_end, force=False, label="Добудова пропущених днів", descending=True)
 
 
 def main() -> None:
