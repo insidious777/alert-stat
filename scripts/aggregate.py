@@ -58,6 +58,26 @@ def resolve_location(alert_type: str, luid: int, locations: dict) -> tuple[str, 
     return None
 
 
+def ancestor_uids(loc: dict, locations: dict) -> list[int]:
+    """Батьківські локації, чия тривога також діє на цю локацію.
+
+    Тривога, оголошена на всю область, стосується і кожного району, і кожної
+    громади в ній; тривога на район стосується громад в ньому. У зворотному
+    напрямку це не працює: тривога в конкретній громаді не означає тривогу
+    у всьому районі/області.
+    """
+    ancestors = []
+    if loc["type"] == "hromada":
+        raion = locations.get(loc.get("parent_raion_uid"))
+        if raion is not None:
+            ancestors.append(raion["uid"])
+    if loc["type"] in ("hromada", "raion"):
+        oblast = locations.get(loc.get("parent_oblast_uid"))
+        if oblast is not None:
+            ancestors.append(oblast["uid"])
+    return ancestors
+
+
 def check_overlaps(df: pd.DataFrame) -> int:
     """Sweep-line check: any overlapping [start,finish] intervals in this group?"""
     d = df.dropna(subset=["started_at", "finished_at"]).sort_values("started_at")
@@ -248,12 +268,27 @@ def main() -> None:
 
     STATS_DIR.mkdir(parents=True, exist_ok=True)
     manifest_entries = []
-    stats_by_uid: dict[int, dict] = {}
 
-    for (res_type, uid), group in df_all.groupby(["res_type", "res_uid"]):
-        uid = int(uid)
+    # власні (точні) групи по локаціях — саме вони йдуть у "sub_location_ranking",
+    # щоб порівнювати райони/громади між собою за їхньою власною активністю,
+    # а не за успадкованими від області тривогами (інакше всі виглядали б однаково)
+    own_groups = {int(uid): group for uid, group in df_all.groupby("res_uid")}
+    own_stats_by_uid: dict[int, dict] = {}
+    for uid, group in own_groups.items():
         loc = locations[uid]
-        stats = compute_stats(group, uid, loc["type"], loc["name"])
+        own_stats_by_uid[uid] = compute_stats(group, uid, loc["type"], loc["name"])
+
+    # ефективна статистика для показу локації = її власні тривоги + тривоги,
+    # оголошені на батьківський район/область (бо вони діють і на неї)
+    stats_by_uid: dict[int, dict] = {}
+    for loc in locations.values():
+        uid = loc["uid"]
+        effective_uids = [uid] + ancestor_uids(loc, locations)
+        parts = [own_groups[u] for u in effective_uids if u in own_groups]
+        if not parts:
+            continue
+        combined = parts[0] if len(parts) == 1 else pd.concat(parts, ignore_index=True)
+        stats = compute_stats(combined, uid, loc["type"], loc["name"])
         stats_by_uid[uid] = stats
 
         fname = f"{TYPE_PREFIX[loc['type']]}-{uid}.json"
@@ -269,7 +304,8 @@ def main() -> None:
             }
         )
 
-    # другий прохід: лідерборд для областей (по райнах) і районів (по громадах)
+    # другий прохід: лідерборд для областей (по райнах) і районів (по громадах),
+    # рахуємо за власною (не успадкованою) активністю дітей
     for loc in locations.values():
         if loc["type"] in ("oblast", "special_city"):
             children = [
@@ -284,7 +320,7 @@ def main() -> None:
 
         ranking = []
         for child in children:
-            child_stats = stats_by_uid.get(child["uid"])
+            child_stats = own_stats_by_uid.get(child["uid"])
             if child_stats is None:
                 continue
             ranking.append(
